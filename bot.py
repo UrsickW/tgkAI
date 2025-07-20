@@ -167,20 +167,17 @@ async def publish_news():
         print('Ошибка при отправке поста:', e)
 
 async def on_startup():
-    print('on_startup() стартовал')
-    # Сразу отправляем новость при запуске
-    await publish_news()
-    # Далее — по расписанию
-    scheduler.add_job(lambda: asyncio.create_task(publish_news()), 'cron', hour=9, minute=0)
-    scheduler.add_job(lambda: asyncio.create_task(publish_news()), 'cron', hour=18, minute=0)
+    scheduler = AsyncIOScheduler()
+    # Отправка новостей каждый час
+    scheduler.add_job(lambda: asyncio.create_task(publish_news()), 'cron', minute=0)
     scheduler.start()
+    await publish_news()
     print("Бот запущен, тестовая новость отправлена и расписание установлено.")
 
 async def main():
-    print('main() стартовал')
     await on_startup()
-    print('on_startup() завершён, запускаю polling')
-    await dp.start_polling(bot)
+    while True:
+        await asyncio.sleep(3600)  # Держим event loop живым
 
 if __name__ == "__main__":
     asyncio.run(main()) 
